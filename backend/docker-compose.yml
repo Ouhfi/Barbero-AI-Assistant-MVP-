@@ -7,10 +7,10 @@ services:
     environment:
       POSTGRES_DB: barbero_db
       POSTGRES_USER: barbero
-      POSTGRES_PASSWORD: 12345678
+      POSTGRES_PASSWORD: your password
 
     ports:
-      - "5000:5432"
+      - "your port"
 
     volumes:
       - barbero_postgres_data:/var/lib/postgresql/data
