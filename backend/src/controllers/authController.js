@@ -2,6 +2,8 @@ import bcrypt from "bcrypt";
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 import "dotenv/config";
+import Area from "../models/Area.js";
+import E from "dotenv";
 
 //====================== REGISTER ======================
 
@@ -25,13 +27,31 @@ export const register = async (req, res) => {
       });
     }
 
+    const userRole = role || "CUSTOMER";
+
+    
+    if (userRole === "BARBER") {
+      if (!area_id) {
+        return res.status(400).json({
+          message: "area_id is required for BARBER role",
+        });
+      }
+
+      const area = await Area.findByPk(area_id);
+      if (!area) {
+        return res.status(404).json({
+          message: "Area not found. Please provide a valid area_id",
+        });
+      }
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
       email,
       password: hashedPassword,
-      role,
-      area_id,
+      role: userRole, 
+      area_id: userRole === "BARBER" ? area_id : null, 
     });
 
     return res.status(201).json({
@@ -43,10 +63,12 @@ export const register = async (req, res) => {
         area_id: user.area_id,
       },
     });
+
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       message: "Registration failed",
+      error: error.message,
     });
   }
 };
