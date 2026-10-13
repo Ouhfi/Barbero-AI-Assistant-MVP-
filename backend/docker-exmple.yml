@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: barbero-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: barbero_db
+      POSTGRES_USER: barbero
+      POSTGRES_PASSWORD: your password
+
+    ports:
+      - "your port"
+
+    volumes:
+      - barbero_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  barbero_postgres_data:
