@@ -33,6 +33,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/orders", orderRoutes);
 
 
+app.use(notFound);
+app.use(errorHandler);
 
 io.use(socketAuth);
 registerSocketHandlers(io);

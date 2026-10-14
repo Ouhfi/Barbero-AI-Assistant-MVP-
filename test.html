@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>Barbero - Barber Simulator</title>
+    <!-- استدعاء مكتبة Socket.io Client من CDN -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body style="font-family: Arial; padding: 20px; background: #f4f4f4;">
+    <h2>💈 Barbero - شاشة الحلاق (محاكي الإشعارات)</h2>
+    <p>الحالة: <span id="status" style="color: red; font-weight: bold;">مقطوع</span></p>
+    
+    <h3>📦 الطلبات الجديدة الواردة:</h3>
+    <ul id="ordersList" style="background: white; padding: 20px; border-radius: 8px; list-style: none;">
+        <li style="color: gray;">كاتسنى شي طلب يوصل...</li>
+    </ul>
+
+    <script>
+        // 1. حط هنا الـ JWT Token ديال الحلاق اللي جبدتي من Postman (Login ديال الحلاق)
+        const BARBER_TOKEN = "حط_هنا_JWT_Token_ديال_الحلاق_بين_هاد_العلامات";
+
+        // 2. الاتصال بالسيرفر مع إرسال الـ Token في الـ auth
+        const socket = io("http://localhost:3003", {
+            auth: {
+                token: BARBER_TOKEN
+            }
+        });
+
+        const statusEl = document.getElementById("status");
+        const ordersList = document.getElementById("ordersList");
+
+        socket.on("connect", () => {
+            statusEl.innerText = "متصل بنجاح (Online)";
+            statusEl.style.color = "green";
+
+            // 3. انضمام الحلاق للـ Area رقم 3
+            const areaId = 3;
+            socket.emit("join_area", areaId, (response) => {
+                if (response?.success) {
+                    console.log(`Successfully joined area_${areaId}`);
+                } else {
+                    console.error("Failed to join room:", response?.error);
+                    statusEl.innerText = "خطأ في الانضمام للغرفة: " + response?.error;
+                    statusEl.style.color = "red";
+                }
+            });
+        });
+
+        socket.on("connect_error", (err) => {
+            statusEl.innerText = "فشل الاتصال (مرفوض أمنياً): " + err.message;
+            statusEl.style.color = "red";
+            console.error("Connection error:", err.message);
+        });
+
+        socket.on("disconnect", () => {
+            statusEl.innerText = "مقطوع (Offline)";
+            statusEl.style.color = "red";
+        });
+
+        // 4. الاستماع للإشعار الجديد
+        socket.on("new_order", (order) => {
+            console.log("وصل طلب جديد:", order);
+            
+            // مسح رسالة الانتظار أول مرة
+            if (ordersList.children.length === 1 && ordersList.children[0].style.color === "gray") {
+                ordersList.innerHTML = "";
+            }
+
+            // إضافة الطلب الجديد للشاشة
+            const li = document.createElement("li");
+            li.style.cssText = "background: #eef9ff; margin-bottom: 10px; padding: 10px; border-left: 4px solid #007bff;";
+            li.innerHTML = `
+                <b>🔥 طلب جديد! (ID: ${order.id})</b><br>
+                الخدمة: ${order.service_details}<br>
+                المنطقة: ${order.area_id}<br>
+                الحالة: ${order.status}<br>
+                <small>الوقت: ${new Date(order.createdAt).toLocaleTimeString()}</small>
+            `;
+            ordersList.prepend(li);
+        });
+    </script>
+</body>
+</html>
