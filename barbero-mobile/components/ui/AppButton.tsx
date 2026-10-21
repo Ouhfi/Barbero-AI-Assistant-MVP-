@@ -1,88 +1,137 @@
-import { Colors } from "@/constants/colors";
+
 import {
-  Pressable,
+  TouchableOpacity,
   Text,
   StyleSheet,
   ActivityIndicator,
+  ViewStyle,
+  View,
 } from "react-native";
+import { Colors } from "@/constants/colors";
+import AppIcon, { IconName } from "./AppIcon";
 
-type AppButtonProps = {
+export type ButtonVariant = "primary" | "outline" | "success";
+
+export interface AppButtonProps {
   title: string;
   onPress: () => void;
-  variant?: "primary" | "secondary";
-  loading?: boolean;
+  variant?: ButtonVariant;
   disabled?: boolean;
-};
+  loading?: boolean;
+  icon?: IconName;
+  style?: ViewStyle;
+}
 
-export function AppButton({
+export default function AppButton({
   title,
   onPress,
   variant = "primary",
-  loading = false,
   disabled = false,
+  loading = false,
+  icon,
+  style,
 }: AppButtonProps) {
+  const isPrimary = variant === "primary";
+  const isSuccess = variant === "success";
+  const isSolid = isPrimary || isSuccess;
   const isDisabled = disabled || loading;
 
+  const buttonStyle = isPrimary
+    ? styles.primary
+    : isSuccess
+    ? styles.success
+    : styles.outline;
+
   return (
-    <Pressable
+    <TouchableOpacity
       onPress={onPress}
       disabled={isDisabled}
+      activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityLabel={title}
       style={[
-        styles.button,
-        variant === "primary"
-          ? styles.primary
-          : styles.secondary,
+        styles.base,
+        buttonStyle,
         isDisabled && styles.disabled,
+        style,
       ]}
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === "primary" ? Colors.white : Colors.primary}
+          color={isSolid ? "#FFFFFF" : Colors.primary}
+          size="small"
         />
       ) : (
-        <Text
-          style={[
-            styles.text,
-            variant === "primary"
-              ? styles.primaryText
-              : styles.secondaryText,
-          ]}
-        >
-          {title}
-        </Text>
+        <View style={styles.contentRow}>
+          {icon ? (
+            <View style={styles.iconContainer}>
+              <AppIcon
+                name={icon}
+                size={18}
+                color={isDisabled ? Colors.disabled : isSolid ? "#FFFFFF" : Colors.primary}
+              />
+            </View>
+          ) : null}
+          <Text
+            style={[
+              styles.label,
+              isSolid ? styles.labelSolid : styles.labelOutline,
+              isDisabled && styles.labelDisabled,
+            ]}
+          >
+            {title}
+          </Text>
+        </View>
       )}
-    </Pressable>
+    </TouchableOpacity>
   );
 }
 
-
 const styles = StyleSheet.create({
-  button: {
-    width: "100%",
-    minHeight: 54,
-    borderRadius: 14,
+  base: {
+    height: 52,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingHorizontal: 24,
+  },
+  contentRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  iconContainer: {
+    marginRight: 8,
   },
   primary: {
     backgroundColor: Colors.primary,
   },
-  secondary: {
-    backgroundColor: Colors.secondary,
+  success: {
+    backgroundColor: Colors.success,
   },
-  text: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  primaryText: {
-    color: Colors.white,
-  },
-  secondaryText: {
-    color: Colors.primary,
+  outline: {
+    backgroundColor: "transparent",
+    borderWidth: 1.5,
+    borderColor: Colors.border,
   },
   disabled: {
-    opacity: 0.5,
+    backgroundColor: Colors.secondary,
+    borderColor: Colors.border,
+    opacity: 0.6,
+  },
+  label: {
+    fontSize: 16,
+    letterSpacing: 0.2,
+  },
+  labelSolid: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+  },
+  labelOutline: {
+    color: Colors.primary,
+    fontWeight: "600",
+  },
+  labelDisabled: {
+    color: Colors.disabled,
   },
 });
