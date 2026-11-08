@@ -44,3 +44,4 @@ Thumbs.db
 *.sqlite3
 *.db-journal
 *.bak
+.expo/
